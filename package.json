@@ -16,5 +16,15 @@
   "bugs": {
     "url": "https://github.com/nuintun/wxwork-api/issues"
   },
+  "engines": {
+    "node": ">=7.6.0"
+  },
+  "dependencies": {
+    "axios": "^0.18.0"
+  },
+  "devDependencies": {
+    "rollup": "^0.57.1",
+    "fs-extra": "^5.0.0"
+  },
   "homepage": "https://github.com/nuintun/wxwork-api#readme"
 }
