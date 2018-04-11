@@ -12,6 +12,15 @@
 const axios = require('axios');
 
 /**
+ * @module const
+ * @author nuintun
+ * @license MIT
+ * @version 2018/04/11
+ */
+
+const BASE_URL$1 = 'https://qyapi.weixin.qq.com/cgi-bin/';
+
+/**
  * @module access-token
  * @author nuintun
  * @license MIT
@@ -72,9 +81,9 @@ class AccessToken {
     const corpSecret = this.corpSecret;
 
     const response = await axios({
-      url: `gettoken?corpid=${corpId}&corpsecret=${corpSecret}`,
-      baseURL: `https://qyapi.weixin.qq.com/cgi-bin/`,
-      responseType: 'json'
+      baseURL: BASE_URL$1,
+      responseType: 'json',
+      url: `gettoken?corpid=${corpId}&corpsecret=${corpSecret}`
     });
 
     const data = response.data;
@@ -98,23 +107,71 @@ class AccessToken {
 }
 
 /**
+ * @module utils
+ * @author nuintun
+ * @license MIT
+ * @version 2018/04/11
+ */
+
+/**
+ * @function configure
+ * @param {string} corpId
+ * @param {string} corpSecret
+ * @param {any} options
+ * @returns {Object}
+ */
+async function configure(corpId, corpSecret, options) {
+  const accessToken = await new AccessToken(corpId, corpSecret);
+
+  options = Object.assign({ baseURL: BASE_URL, responseType: 'json' }, options);
+  options.data = Object.assign({ access_token: accessToken }, options.data);
+
+  return options;
+}
+
+/**
  * @module index
  * @author nuintun
  * @license MIT
  * @version 2018/04/11
  */
 
+/**
+ * @class WXWork
+ */
 class WXWork {
-  constructor(corpId, corpsecret, appId) {
+  /**
+   * @constructor
+   * @param {string} corpId
+   * @param {string} corpSecret
+   */
+  constructor(corpId, corpSecret) {
     this.corpId = corpId;
-    this.corpsecret = corpsecret;
-    this.appId = appId;
+    this.corpSecret = corpSecret;
+  }
 
-    const getAccessToken = async () => {
-      console.log(await new AccessToken(corpId, corpsecret));
-    };
+  /**
+   * @method get
+   * @param {string} url
+   * @param {any} options
+   * @returns {Promise}
+   */
+  async get(url, options) {
+    options = await configure(options);
 
-    getAccessToken().catch(error => console.error(error));
+    return await axios.get(url, options);
+  }
+
+  /**
+   * @method post
+   * @param {string} url
+   * @param {any} options
+   * @returns {Promise}
+   */
+  async post(url, options) {
+    options = await configure(options);
+
+    return await axios.post(url, options);
   }
 }
 

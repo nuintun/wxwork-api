@@ -6,6 +6,7 @@
  */
 
 import axios from 'axios';
+import { BASE_URL } from './const';
 
 // Access token cache
 const ACCESS_TOKEN_CACHE = new Map();
@@ -61,9 +62,9 @@ export default class AccessToken {
     const corpSecret = this.corpSecret;
 
     const response = await axios({
-      url: `gettoken?corpid=${corpId}&corpsecret=${corpSecret}`,
-      baseURL: `https://qyapi.weixin.qq.com/cgi-bin/`,
-      responseType: 'json'
+      baseURL: BASE_URL,
+      responseType: 'json',
+      url: `gettoken?corpid=${corpId}&corpsecret=${corpSecret}`
     });
 
     const data = response.data;

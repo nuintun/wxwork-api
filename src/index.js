@@ -5,18 +5,45 @@
  * @version 2018/04/11
  */
 
-import AccessToken from './lib/access-token';
+import axios from 'axios';
+import { BASE_URL } from './lib/const';
+import { configure } from './lib/utils';
 
+/**
+ * @class WXWork
+ */
 export default class WXWork {
-  constructor(corpId, corpsecret, appId) {
+  /**
+   * @constructor
+   * @param {string} corpId
+   * @param {string} corpSecret
+   */
+  constructor(corpId, corpSecret) {
     this.corpId = corpId;
-    this.corpsecret = corpsecret;
-    this.appId = appId;
+    this.corpSecret = corpSecret;
+  }
 
-    const getAccessToken = async () => {
-      console.log(await new AccessToken(corpId, corpsecret));
-    };
+  /**
+   * @method get
+   * @param {string} url
+   * @param {any} options
+   * @returns {Promise}
+   */
+  async get(url, options) {
+    options = await configure(options);
 
-    getAccessToken().catch(error => console.error(error));
+    return await axios.get(url, options);
+  }
+
+  /**
+   * @method post
+   * @param {string} url
+   * @param {any} options
+   * @returns {Promise}
+   */
+  async post(url, options) {
+    options = await configure(options);
+
+    return await axios.post(url, options);
   }
 }
