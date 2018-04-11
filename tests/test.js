@@ -7,13 +7,15 @@
 
 const WXWork = require('../index');
 
-const api = new WXWork('aa', 'bb', 0);
+const api = new WXWork('corpId', 'corpSecret');
 
 async function fetch(params) {
   try {
-    await api.get('user/get', { userid: '0' });
+    const response = await api.get('user/get', { userid: 'nuintun' });
+
+    console.log(response.data);
   } catch (error) {
-    console.error(error);
+    return console.error(error);
   }
 }
 

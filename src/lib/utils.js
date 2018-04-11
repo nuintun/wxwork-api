@@ -19,7 +19,7 @@ export async function configure(corpId, corpSecret, options) {
   const accessToken = await new AccessToken(corpId, corpSecret);
 
   options = Object.assign({ baseURL: BASE_URL, responseType: 'json' }, options);
-  options.data = Object.assign({ access_token: accessToken }, options.data);
+  options.params = Object.assign(options.params || {}, { access_token: accessToken });
 
   return options;
 }

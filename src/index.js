@@ -28,8 +28,12 @@ export default class WXWork {
    * @param {any} options
    * @returns {Promise}
    */
-  async get(url, options) {
-    options = await configure(options);
+  async get(url, params = {}, options) {
+    const corpId = this.corpId;
+    const corpSecret = this.corpSecret;
+
+    options = await configure(corpId, corpSecret, options);
+    options.params = Object.assign(params, options.params);
 
     return await axios.get(url, options);
   }
@@ -37,12 +41,16 @@ export default class WXWork {
   /**
    * @method post
    * @param {string} url
+   * @param {Object} data
    * @param {any} options
    * @returns {Promise}
    */
-  async post(url, options) {
-    options = await configure(options);
+  async post(url, data = {}, options) {
+    const corpId = this.corpId;
+    const corpSecret = this.corpSecret;
 
-    return await axios.post(url, options);
+    options = await configure(corpId, corpSecret, options);
+
+    return await axios.post(url, data, options);
   }
 }

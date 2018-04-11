@@ -80,10 +80,10 @@ class AccessToken {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
 
-    const response = await axios({
+    const response = await axios.get('gettoken', {
       baseURL: BASE_URL,
       responseType: 'json',
-      url: `gettoken?corpid=${corpId}&corpsecret=${corpSecret}`
+      params: { corpid: corpId, corpsecret: corpSecret }
     });
 
     const data = response.data;
@@ -124,7 +124,7 @@ async function configure(corpId, corpSecret, options) {
   const accessToken = await new AccessToken(corpId, corpSecret);
 
   options = Object.assign({ baseURL: BASE_URL, responseType: 'json' }, options);
-  options.data = Object.assign({ access_token: accessToken }, options.data);
+  options.params = Object.assign(options.params || {}, { access_token: accessToken });
 
   return options;
 }
@@ -156,8 +156,12 @@ class WXWork {
    * @param {any} options
    * @returns {Promise}
    */
-  async get(url, options) {
-    options = await configure(options);
+  async get(url, params = {}, options) {
+    const corpId = this.corpId;
+    const corpSecret = this.corpSecret;
+
+    options = await configure(corpId, corpSecret, options);
+    options.params = Object.assign(params, options.params);
 
     return await axios.get(url, options);
   }
@@ -165,13 +169,17 @@ class WXWork {
   /**
    * @method post
    * @param {string} url
+   * @param {Object} data
    * @param {any} options
    * @returns {Promise}
    */
-  async post(url, options) {
-    options = await configure(options);
+  async post(url, data = {}, options) {
+    const corpId = this.corpId;
+    const corpSecret = this.corpSecret;
 
-    return await axios.post(url, options);
+    options = await configure(corpId, corpSecret, options);
+
+    return await axios.post(url, data, options);
   }
 }
 

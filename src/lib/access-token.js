@@ -61,10 +61,10 @@ export default class AccessToken {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
 
-    const response = await axios({
+    const response = await axios.get('gettoken', {
       baseURL: BASE_URL,
       responseType: 'json',
-      url: `gettoken?corpid=${corpId}&corpsecret=${corpSecret}`
+      params: { corpid: corpId, corpsecret: corpSecret }
     });
 
     const data = response.data;
