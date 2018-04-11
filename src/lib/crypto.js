@@ -8,6 +8,39 @@
 import crypto from 'crypto';
 
 /**
+ * @function PKCS7Decoder
+ * @description AES算法 pkcs7 padding Decoder
+ * @param {Buffer} buffer 需要解码的 Buffer
+ * @returns {Buffer}
+ */
+function PKCS7Decoder(buffer) {
+  const pad = buffer[buffer.length - 1];
+
+  if (pad < 1 || pad > 32) {
+    pad = 0;
+  }
+
+  return buffer.slice(0, buffer.length - pad);
+}
+
+/**
+ * @function PKCS7Encoder
+ * @description AES算法 pkcs7 padding Encoder
+ * @param {Buffer} buffer 需要编码码的 Buffer
+ * @returns {Buffer}
+ */
+function PKCS7Encoder(buffer) {
+  const blockSize = 32;
+  const size = buffer.length;
+  const amountToPad = blockSize - size % blockSize;
+  const pad = new Buffer(amountToPad - 1);
+
+  pad.fill(String.fromCharCode(amountToPad));
+
+  return Buffer.concat([buffer, pad]);
+}
+
+/**
  * @function initCrypto
  * @description 初始化AES解密的配置信息
  * @param {string} corpId 企业微信的 corpId，当为第三方套件回调事件时，corpId 的内容为 suiteId
@@ -84,8 +117,8 @@ export function decrypt(string, corpId) {
 
   aesCipher.setAutoPadding(false);
 
-  const decipheredBuff = PKCS7Decoder(Buffer.concat([aesCipher.update(string, 'base64'), aesCipher.final()]));
-  const data = decipheredBuff.slice(16);
+  const deciphered = PKCS7Decoder(Buffer.concat([aesCipher.update(string, 'base64'), aesCipher.final()]));
+  const data = deciphered.slice(16);
   const size = data.slice(0, 4).readUInt32BE(0);
   const decryptCorpId = data.slice(size + 4).toString();
 
