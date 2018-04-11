@@ -37,17 +37,7 @@ const banner = `/**
 const inputOptions = {
   input: 'src/index.js',
   preferConst: true,
-  external: [
-    'fs',
-    'util',
-    'path',
-    'cmd-deps',
-    'micromatch',
-    '@nuintun/bundler',
-    '@nuintun/through',
-    '@nuintun/css-deps',
-    '@nuintun/gulp-util'
-  ]
+  external: ['axios', 'crypto']
 };
 
 const outputOptions = {
