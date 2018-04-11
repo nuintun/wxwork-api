@@ -120,10 +120,10 @@ class AccessToken {
  * @param {any} options
  * @returns {Object}
  */
-async function configure(corpId, corpSecret, options) {
+async function configure(corpId, corpSecret, options = {}) {
   const accessToken = await new AccessToken(corpId, corpSecret);
 
-  options = Object.assign({ baseURL: BASE_URL, responseType: 'json' }, options);
+  options = Object.assign(options, { baseURL: BASE_URL, responseType: 'json' });
   options.params = Object.assign(options.params || {}, { access_token: accessToken });
 
   return options;
@@ -178,6 +178,7 @@ class WXWork {
     const corpSecret = this.corpSecret;
 
     options = await configure(corpId, corpSecret, options);
+    options.data = Object.assign(data, options.data);
 
     return await axios.post(url, data, options);
   }
