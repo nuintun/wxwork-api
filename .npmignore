@@ -57,7 +57,26 @@ typings/
 # dotenv environment variables file
 .env
 
-# vscode
+# git ignore configuration
+.gitignore
+
+# npm ignore configuration
+.npmignore
+
+# travis configuration
+.travis.yml
+
+# appveyor configuration
+appveyor.yml
+
+# tests directories
+tests
+test
+
+# npm configuration
+.npmrc
+
+# vscode configuration
 .vscode
 
 # npm lock file

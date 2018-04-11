@@ -1,0 +1,20 @@
+{
+  "name": "wxwork-api",
+  "version": "0.0.0",
+  "description": "WXWork API for the node.js.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nuintun/wxwork-api.git"
+  },
+  "keywords": ["WXWork"],
+  "author": {
+    "name": "nuintun",
+    "email": "nuintun@qq.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nuintun/wxwork-api/issues"
+  },
+  "homepage": "https://github.com/nuintun/wxwork-api#readme"
+}
