@@ -5,6 +5,7 @@
  * @version 2018/04/11
  */
 
+import { BASE_URL } from './const';
 import AccessToken from './access-token';
 
 /**

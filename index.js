@@ -18,7 +18,7 @@ const axios = require('axios');
  * @version 2018/04/11
  */
 
-const BASE_URL$1 = 'https://qyapi.weixin.qq.com/cgi-bin/';
+const BASE_URL = 'https://qyapi.weixin.qq.com/cgi-bin/';
 
 /**
  * @module access-token
@@ -81,7 +81,7 @@ class AccessToken {
     const corpSecret = this.corpSecret;
 
     const response = await axios({
-      baseURL: BASE_URL$1,
+      baseURL: BASE_URL,
       responseType: 'json',
       url: `gettoken?corpid=${corpId}&corpsecret=${corpSecret}`
     });

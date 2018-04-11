@@ -6,7 +6,6 @@
  */
 
 import axios from 'axios';
-import { BASE_URL } from './lib/const';
 import { configure } from './lib/utils';
 
 /**
