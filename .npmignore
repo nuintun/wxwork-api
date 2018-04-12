@@ -84,6 +84,3 @@ package-lock.json
 
 # src file
 /src/
-
-# local tests
-/tests/local.js

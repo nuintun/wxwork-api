@@ -62,6 +62,3 @@ typings/
 
 # npm lock file
 package-lock.json
-
-# local tests
-/tests/local.js
