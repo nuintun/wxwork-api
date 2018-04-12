@@ -6,7 +6,8 @@
  */
 
 import axios from 'axios';
-import { BASE_URL } from './const';
+import cluster from 'cluster';
+import { API_ERROR, CLUSTER_CMD, BASE_URL } from './const';
 
 // Access token cache
 const ACCESS_TOKEN_CACHE = new Map();
@@ -26,18 +27,40 @@ export default class AccessToken {
 
     const uid = `${corpId}-${corpSecret}`;
 
+    /**
+     * @function fetch
+     */
     const fetch = async () => {
       if (ACCESS_TOKEN_CACHE.has(uid)) {
         const cached = ACCESS_TOKEN_CACHE.get(uid);
 
-        if (this.isExpired(cached.expires)) {
-          return this.fetchAccessToken(uid);
+        if (!this.isExpired(cached.expires)) {
+          return cached.token;
         }
-
-        return cached.token;
       }
 
-      return this.fetchAccessToken(uid);
+      // Get access token
+      const response = await this.fetchAccessToken(uid);
+      // Get response data
+      const data = response.data;
+
+      // Get access token success
+      if (data.errcode === 0) {
+        ACCESS_TOKEN_CACHE.set(uid, {
+          token: data.access_token,
+          expires: Date.now() + data.expires_in * 1000
+        });
+
+        return data.access_token;
+      }
+
+      // Get access token error
+      const error = new Error(data.errmsg);
+
+      error.name = API_ERROR;
+      error.code = data.errcode;
+
+      throw error;
     };
 
     return fetch();
@@ -54,35 +77,32 @@ export default class AccessToken {
 
   /**
    * @method fetchAccessToken
-   * @param {string} uid
    * @returns {Promise}
    */
-  async fetchAccessToken(uid) {
+  async fetchAccessToken() {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
 
-    const response = await axios.get('gettoken', {
+    return await axios.get('gettoken', {
       baseURL: BASE_URL,
       responseType: 'json',
       params: { corpid: corpId, corpsecret: corpSecret }
     });
-
-    const data = response.data;
-
-    if (data.errcode === 0) {
-      ACCESS_TOKEN_CACHE.set(uid, {
-        token: data.access_token,
-        expires: Date.now() + data.expires_in * 1000
-      });
-    } else {
-      const error = new Error(data.errmsg);
-
-      error.code = data.errcode;
-      error.name = 'WXWorkAPIError';
-
-      throw error;
-    }
-
-    return data.access_token;
   }
+}
+
+if (cluster.isMaster) {
+  cluster.on('message', async (worker, message) => {
+    const cmd = message.cmd;
+
+    switch (message.cmd) {
+      case CLUSTER_CMD.ACCESS_TOKEN:
+        const data = message.data;
+        const corpId = data.corpId;
+        const corpSecret = data.corpSecret;
+
+        worker.send({ cmd, data: await new AccessToken(corpId, corpSecret) });
+        break;
+    }
+  });
 }

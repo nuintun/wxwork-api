@@ -37,7 +37,7 @@ const banner = `/**
 const inputOptions = {
   input: 'src/index.js',
   preferConst: true,
-  external: ['axios', 'crypto']
+  external: ['axios', 'crypto', 'cluster']
 };
 
 const outputOptions = {

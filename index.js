@@ -10,6 +10,7 @@
 'use strict';
 
 const axios = require('axios');
+const cluster = require('cluster');
 
 /**
  * @module const
@@ -18,6 +19,8 @@ const axios = require('axios');
  * @version 2018/04/11
  */
 
+const API_ERROR = 'WXWorkAPIError';
+const CLUSTER_CMD = { ACCESS_TOKEN: 'access-token' };
 const BASE_URL = 'https://qyapi.weixin.qq.com/cgi-bin/';
 
 /**
@@ -45,18 +48,40 @@ class AccessToken {
 
     const uid = `${corpId}-${corpSecret}`;
 
+    /**
+     * @function fetch
+     */
     const fetch = async () => {
       if (ACCESS_TOKEN_CACHE.has(uid)) {
         const cached = ACCESS_TOKEN_CACHE.get(uid);
 
-        if (this.isExpired(cached.expires)) {
-          return this.fetchAccessToken(uid);
+        if (!this.isExpired(cached.expires)) {
+          return cached.token;
         }
-
-        return cached.token;
       }
 
-      return this.fetchAccessToken(uid);
+      // Get access token
+      const response = await this.fetchAccessToken(uid);
+      // Get response data
+      const data = response.data;
+
+      // Get access token success
+      if (data.errcode === 0) {
+        ACCESS_TOKEN_CACHE.set(uid, {
+          token: data.access_token,
+          expires: Date.now() + data.expires_in * 1000
+        });
+
+        return data.access_token;
+      }
+
+      // Get access token error
+      const error = new Error(data.errmsg);
+
+      error.name = API_ERROR;
+      error.code = data.errcode;
+
+      throw error;
     };
 
     return fetch();
@@ -73,37 +98,34 @@ class AccessToken {
 
   /**
    * @method fetchAccessToken
-   * @param {string} uid
    * @returns {Promise}
    */
-  async fetchAccessToken(uid) {
+  async fetchAccessToken() {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
 
-    const response = await axios.get('gettoken', {
+    return await axios.get('gettoken', {
       baseURL: BASE_URL,
       responseType: 'json',
       params: { corpid: corpId, corpsecret: corpSecret }
     });
-
-    const data = response.data;
-
-    if (data.errcode === 0) {
-      ACCESS_TOKEN_CACHE.set(uid, {
-        token: data.access_token,
-        expires: Date.now() + data.expires_in * 1000
-      });
-    } else {
-      const error = new Error(data.errmsg);
-
-      error.code = data.errcode;
-      error.name = 'WXWorkAPIError';
-
-      throw error;
-    }
-
-    return data.access_token;
   }
+}
+
+if (cluster.isMaster) {
+  cluster.on('message', async (worker, message) => {
+    const cmd = message.cmd;
+
+    switch (message.cmd) {
+      case CLUSTER_CMD.ACCESS_TOKEN:
+        const data = message.data;
+        const corpId = data.corpId;
+        const corpSecret = data.corpSecret;
+
+        worker.send({ cmd, data: await new AccessToken(corpId, corpSecret) });
+        break;
+    }
+  });
 }
 
 /**
@@ -121,7 +143,24 @@ class AccessToken {
  * @returns {Object}
  */
 async function configure(corpId, corpSecret, options = {}) {
-  const accessToken = await new AccessToken(corpId, corpSecret);
+  const accessToken = cluster.isMaster
+    ? await new AccessToken(corpId, corpSecret)
+    : await new Promise((resolve, reject) => {
+        process.once('message', message => {
+          const cmd = message.cmd;
+
+          switch (message.cmd) {
+            case CLUSTER_CMD.ACCESS_TOKEN:
+              resolve(message.data);
+              break;
+          }
+        });
+
+        process.send({
+          cmd: CLUSTER_CMD.ACCESS_TOKEN,
+          data: { corpId, corpSecret }
+        });
+      });
 
   options = Object.assign(options, { baseURL: BASE_URL, responseType: 'json' });
   options.params = Object.assign(options.params || {}, { access_token: accessToken });
