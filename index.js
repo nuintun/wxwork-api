@@ -2,7 +2,7 @@
  * @module wxwork-api
  * @author nuintun
  * @license MIT
- * @version 0.0.1
+ * @version 0.0.2
  * @description WXWork API for the node.js.
  * @see https://github.com/nuintun/wxwork-api#readme
  */
@@ -10,7 +10,6 @@
 'use strict';
 
 const axios = require('axios');
-const cluster = require('cluster');
 
 /**
  * @module const
@@ -20,7 +19,6 @@ const cluster = require('cluster');
  */
 
 const API_ERROR = 'WXWorkAPIError';
-const CLUSTER_CMD = { ACCESS_TOKEN: 'access-token' };
 const BASE_URL = 'https://qyapi.weixin.qq.com/cgi-bin/';
 
 /**
@@ -112,22 +110,6 @@ class AccessToken {
   }
 }
 
-if (cluster.isMaster) {
-  cluster.on('message', async (worker, message) => {
-    const cmd = message.cmd;
-
-    switch (message.cmd) {
-      case CLUSTER_CMD.ACCESS_TOKEN:
-        const data = message.data;
-        const corpId = data.corpId;
-        const corpSecret = data.corpSecret;
-
-        worker.send({ cmd, data: await new AccessToken(corpId, corpSecret) });
-        break;
-    }
-  });
-}
-
 /**
  * @module utils
  * @author nuintun
@@ -143,24 +125,7 @@ if (cluster.isMaster) {
  * @returns {Object}
  */
 async function configure(corpId, corpSecret, options = {}) {
-  const accessToken = cluster.isMaster
-    ? await new AccessToken(corpId, corpSecret)
-    : await new Promise((resolve, reject) => {
-        process.once('message', message => {
-          const cmd = message.cmd;
-
-          switch (message.cmd) {
-            case CLUSTER_CMD.ACCESS_TOKEN:
-              resolve(message.data);
-              break;
-          }
-        });
-
-        process.send({
-          cmd: CLUSTER_CMD.ACCESS_TOKEN,
-          data: { corpId, corpSecret }
-        });
-      });
+  const accessToken = await new AccessToken(corpId, corpSecret);
 
   options = Object.assign(options, { baseURL: BASE_URL, responseType: 'json' });
   options.params = Object.assign(options.params || {}, { access_token: accessToken });

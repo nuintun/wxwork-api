@@ -6,8 +6,7 @@
  */
 
 import axios from 'axios';
-import cluster from 'cluster';
-import { API_ERROR, CLUSTER_CMD, BASE_URL } from './const';
+import { API_ERROR, BASE_URL } from './const';
 
 // Access token cache
 const ACCESS_TOKEN_CACHE = new Map();
@@ -89,20 +88,4 @@ export default class AccessToken {
       params: { corpid: corpId, corpsecret: corpSecret }
     });
   }
-}
-
-if (cluster.isMaster) {
-  cluster.on('message', async (worker, message) => {
-    const cmd = message.cmd;
-
-    switch (message.cmd) {
-      case CLUSTER_CMD.ACCESS_TOKEN:
-        const data = message.data;
-        const corpId = data.corpId;
-        const corpSecret = data.corpSecret;
-
-        worker.send({ cmd, data: await new AccessToken(corpId, corpSecret) });
-        break;
-    }
-  });
 }

@@ -6,5 +6,4 @@
  */
 
 export const API_ERROR = 'WXWorkAPIError';
-export const CLUSTER_CMD = { ACCESS_TOKEN: 'access-token' };
 export const BASE_URL = 'https://qyapi.weixin.qq.com/cgi-bin/';
