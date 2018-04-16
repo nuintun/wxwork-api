@@ -2,7 +2,7 @@
  * @module wxwork-api
  * @author nuintun
  * @license MIT
- * @version 0.0.4
+ * @version 0.0.5
  * @description WXWork API for the node.js.
  * @see https://github.com/nuintun/wxwork-api#readme
  */
@@ -35,21 +35,6 @@ const ACCESS_TOKEN_CACHE = new Map();
  * @class AccessToken
  */
 class AccessToken {
-  /**
-   * @static
-   * @function refreshAccessToken
-   * @param {string} corpId
-   * @param {string} corpSecret
-   * @returns {string}
-   */
-  static async refreshAccessToken(corpId, corpSecret) {
-    const uid = `${corpId}-${corpSecret}`;
-
-    ACCESS_TOKEN_CACHE.delete(uid);
-
-    return await new AccessToken(corpId, corpSecret);
-  }
-
   /**
    * @constructor
    * @param {string} corpId
@@ -98,6 +83,21 @@ class AccessToken {
     };
 
     return fetch();
+  }
+
+  /**
+   * @static
+   * @function refreshAccessToken
+   * @param {string} corpId
+   * @param {string} corpSecret
+   * @returns {string}
+   */
+  static async refreshAccessToken(corpId, corpSecret) {
+    const uid = `${corpId}-${corpSecret}`;
+
+    ACCESS_TOKEN_CACHE.delete(uid);
+
+    return await new AccessToken(corpId, corpSecret);
   }
 
   /**
@@ -200,7 +200,7 @@ class WXWork {
    * @param {any} options
    * @returns {Promise}
    */
-  async post(url, data, options = {}) {
+  async post(url, data = {}, options = {}) {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
 

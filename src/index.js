@@ -54,7 +54,7 @@ export default class WXWork {
    * @param {any} options
    * @returns {Promise}
    */
-  async post(url, data, options = {}) {
+  async post(url, data = {}, options = {}) {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
 

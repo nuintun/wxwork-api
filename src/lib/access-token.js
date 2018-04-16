@@ -16,21 +16,6 @@ const ACCESS_TOKEN_CACHE = new Map();
  */
 export default class AccessToken {
   /**
-   * @static
-   * @function refreshAccessToken
-   * @param {string} corpId
-   * @param {string} corpSecret
-   * @returns {string}
-   */
-  static async refreshAccessToken(corpId, corpSecret) {
-    const uid = `${corpId}-${corpSecret}`;
-
-    ACCESS_TOKEN_CACHE.delete(uid);
-
-    return await new AccessToken(corpId, corpSecret);
-  }
-
-  /**
    * @constructor
    * @param {string} corpId
    * @param {string} corpSecret
@@ -78,6 +63,21 @@ export default class AccessToken {
     };
 
     return fetch();
+  }
+
+  /**
+   * @static
+   * @function refreshAccessToken
+   * @param {string} corpId
+   * @param {string} corpSecret
+   * @returns {string}
+   */
+  static async refreshAccessToken(corpId, corpSecret) {
+    const uid = `${corpId}-${corpSecret}`;
+
+    ACCESS_TOKEN_CACHE.delete(uid);
+
+    return await new AccessToken(corpId, corpSecret);
   }
 
   /**
