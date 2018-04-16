@@ -1,6 +1,6 @@
 {
   "name": "wxwork-api",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "WXWork API for the node.js.",
   "main": "index.js",
   "repository": {
