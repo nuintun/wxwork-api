@@ -2,7 +2,7 @@
  * @module const
  * @author nuintun
  * @license MIT
- * @version 2018/04/11
+ * @version 2018/04/16
  */
 
 export const API_ERROR = 'WXWorkAPIError';

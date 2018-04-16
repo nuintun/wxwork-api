@@ -2,7 +2,7 @@
  * @module index
  * @author nuintun
  * @license MIT
- * @version 2018/04/11
+ * @version 2018/04/16
  */
 
 import axios from 'axios';
@@ -33,14 +33,19 @@ export default class WXWork {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
 
+    // Set params
     options.params = params;
+    // Configure options
     options = await configure(corpId, corpSecret, options);
 
+    // GET
     const response = await axios.get(url, options);
 
+    // Access token is expired
     if (response.data.errcode === 42001) {
       options.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
 
+      // Refresh
       return await axios.get(url, options);
     }
 
@@ -58,13 +63,17 @@ export default class WXWork {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
 
+    // Configure options
     options = await configure(corpId, corpSecret, options);
 
+    // POST
     const response = await axios.post(url, data, options);
 
+    // Access token is expired
     if (response.data.errcode === 42001) {
       options.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
 
+      // Refresh
       return await axios.post(url, data, options);
     }
 

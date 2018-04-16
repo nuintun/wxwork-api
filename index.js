@@ -2,7 +2,7 @@
  * @module wxwork-api
  * @author nuintun
  * @license MIT
- * @version 0.0.5
+ * @version 0.0.6
  * @description WXWork API for the node.js.
  * @see https://github.com/nuintun/wxwork-api#readme
  */
@@ -15,7 +15,7 @@ const axios = require('axios');
  * @module const
  * @author nuintun
  * @license MIT
- * @version 2018/04/11
+ * @version 2018/04/16
  */
 
 const API_ERROR = 'WXWorkAPIError';
@@ -25,7 +25,7 @@ const BASE_URL = 'https://qyapi.weixin.qq.com/cgi-bin/';
  * @module access-token
  * @author nuintun
  * @license MIT
- * @version 2018/04/11
+ * @version 2018/04/16
  */
 
 // Access token cache
@@ -44,6 +44,7 @@ class AccessToken {
     this.corpId = corpId;
     this.corpSecret = corpSecret;
 
+    // Cache key
     const uid = `${corpId}-${corpSecret}`;
 
     /**
@@ -53,6 +54,7 @@ class AccessToken {
       if (ACCESS_TOKEN_CACHE.has(uid)) {
         const cached = ACCESS_TOKEN_CACHE.get(uid);
 
+        // Access token is not expired
         if (!this.isExpired(cached.expires)) {
           return cached.token;
         }
@@ -93,10 +95,13 @@ class AccessToken {
    * @returns {string}
    */
   static async refreshAccessToken(corpId, corpSecret) {
+    // Cache key
     const uid = `${corpId}-${corpSecret}`;
 
+    // Delete cache
     ACCESS_TOKEN_CACHE.delete(uid);
 
+    // Refresh access token
     return await new AccessToken(corpId, corpSecret);
   }
 
@@ -117,6 +122,7 @@ class AccessToken {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
 
+    // GET
     return await axios.get('gettoken', {
       baseURL: BASE_URL,
       responseType: 'json',
@@ -129,7 +135,7 @@ class AccessToken {
  * @module utils
  * @author nuintun
  * @license MIT
- * @version 2018/04/11
+ * @version 2018/04/16
  */
 
 /**
@@ -139,11 +145,11 @@ class AccessToken {
  * @param {any} options
  * @returns {Object}
  */
-async function configure(corpId, corpSecret, options = {}) {
+async function configure(corpId, corpSecret, options) {
   const accessToken = await new AccessToken(corpId, corpSecret);
 
-  options = Object.assign(options, { baseURL: BASE_URL, responseType: 'json' });
-  options.params = Object.assign(options.params || {}, { access_token: accessToken });
+  options = Object.assign({ responseType: 'json' }, options, { baseURL: BASE_URL });
+  options.params = Object.assign({}, options.params, { access_token: accessToken });
 
   return options;
 }
@@ -152,7 +158,7 @@ async function configure(corpId, corpSecret, options = {}) {
  * @module index
  * @author nuintun
  * @license MIT
- * @version 2018/04/11
+ * @version 2018/04/16
  */
 
 /**
@@ -179,14 +185,19 @@ class WXWork {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
 
+    // Set params
     options.params = params;
+    // Configure options
     options = await configure(corpId, corpSecret, options);
 
+    // GET
     const response = await axios.get(url, options);
 
+    // Access token is expired
     if (response.data.errcode === 42001) {
       options.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
 
+      // Refresh
       return await axios.get(url, options);
     }
 
@@ -204,13 +215,17 @@ class WXWork {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
 
+    // Configure options
     options = await configure(corpId, corpSecret, options);
 
+    // POST
     const response = await axios.post(url, data, options);
 
+    // Access token is expired
     if (response.data.errcode === 42001) {
       options.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
 
+      // Refresh
       return await axios.post(url, data, options);
     }
 

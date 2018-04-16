@@ -2,7 +2,7 @@
  * @module access-token
  * @author nuintun
  * @license MIT
- * @version 2018/04/11
+ * @version 2018/04/16
  */
 
 import axios from 'axios';
@@ -24,6 +24,7 @@ export default class AccessToken {
     this.corpId = corpId;
     this.corpSecret = corpSecret;
 
+    // Cache key
     const uid = `${corpId}-${corpSecret}`;
 
     /**
@@ -33,6 +34,7 @@ export default class AccessToken {
       if (ACCESS_TOKEN_CACHE.has(uid)) {
         const cached = ACCESS_TOKEN_CACHE.get(uid);
 
+        // Access token is not expired
         if (!this.isExpired(cached.expires)) {
           return cached.token;
         }
@@ -73,10 +75,13 @@ export default class AccessToken {
    * @returns {string}
    */
   static async refreshAccessToken(corpId, corpSecret) {
+    // Cache key
     const uid = `${corpId}-${corpSecret}`;
 
+    // Delete cache
     ACCESS_TOKEN_CACHE.delete(uid);
 
+    // Refresh access token
     return await new AccessToken(corpId, corpSecret);
   }
 
@@ -97,6 +102,7 @@ export default class AccessToken {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
 
+    // GET
     return await axios.get('gettoken', {
       baseURL: BASE_URL,
       responseType: 'json',
