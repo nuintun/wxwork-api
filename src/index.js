@@ -7,6 +7,7 @@
 
 import axios from 'axios';
 import { configure } from './lib/utils';
+import AccessToken from './lib/access-token';
 
 /**
  * @class WXWork
@@ -35,7 +36,15 @@ export default class WXWork {
     options = await configure(corpId, corpSecret, options);
     options.params = Object.assign(params, options.params);
 
-    return await axios.get(url, options);
+    const response = await axios.get(url, options);
+
+    if (response.data.errcode === 42001) {
+      options.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
+
+      return await axios.get(url, options);
+    }
+
+    return response;
   }
 
   /**
@@ -52,6 +61,14 @@ export default class WXWork {
     options = await configure(corpId, corpSecret, options);
     options.data = Object.assign(data, options.data);
 
-    return await axios.post(url, data, options);
+    const response = await axios.post(url, data, options);
+
+    if (response.data.errcode === 42001) {
+      options.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
+
+      return await axios.post(url, data, options);
+    }
+
+    return response;
   }
 }

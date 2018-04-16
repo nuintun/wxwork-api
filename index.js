@@ -2,7 +2,7 @@
  * @module wxwork-api
  * @author nuintun
  * @license MIT
- * @version 0.0.2
+ * @version 0.0.3
  * @description WXWork API for the node.js.
  * @see https://github.com/nuintun/wxwork-api#readme
  */
@@ -35,6 +35,21 @@ const ACCESS_TOKEN_CACHE = new Map();
  * @class AccessToken
  */
 class AccessToken {
+  /**
+   * @static
+   * @function refreshAccessToken
+   * @param {string} corpId
+   * @param {string} corpSecret
+   * @returns {string}
+   */
+  static async refreshAccessToken(corpId, corpSecret) {
+    const uid = `${corpId}-${corpSecret}`;
+
+    ACCESS_TOKEN_CACHE.delete(uid);
+
+    return await new AccessToken(corpId, corpSecret);
+  }
+
   /**
    * @constructor
    * @param {string} corpId
@@ -167,7 +182,15 @@ class WXWork {
     options = await configure(corpId, corpSecret, options);
     options.params = Object.assign(params, options.params);
 
-    return await axios.get(url, options);
+    const response = await axios.get(url, options);
+
+    if (response.data.errcode === 42001) {
+      options.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
+
+      return await axios.get(url, options);
+    }
+
+    return response;
   }
 
   /**
@@ -184,7 +207,15 @@ class WXWork {
     options = await configure(corpId, corpSecret, options);
     options.data = Object.assign(data, options.data);
 
-    return await axios.post(url, data, options);
+    const response = await axios.post(url, data, options);
+
+    if (response.data.errcode === 42001) {
+      options.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
+
+      return await axios.post(url, data, options);
+    }
+
+    return response;
   }
 }
 
