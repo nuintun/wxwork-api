@@ -43,7 +43,7 @@ export default class WXWork {
 
     // Access token is expired
     if (response.data.errcode === 42001) {
-      options.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
+      options.params.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
 
       // Refresh
       return await axios.get(url, options);
@@ -71,7 +71,7 @@ export default class WXWork {
 
     // Access token is expired
     if (response.data.errcode === 42001) {
-      options.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
+      options.params.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
 
       // Refresh
       return await axios.post(url, data, options);
