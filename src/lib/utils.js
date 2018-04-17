@@ -10,16 +10,13 @@ import AccessToken from './access-token';
 
 /**
  * @function configure
- * @param {string} corpId
- * @param {string} corpSecret
+ * @param {AccessToken} accessToken
  * @param {any} options
- * @returns {Object}
+ * @returns {Promise}
  */
-export async function configure(corpId, corpSecret, options) {
-  const accessToken = await new AccessToken(corpId, corpSecret);
-
+export async function configure(accessToken, options) {
   options = Object.assign({ responseType: 'json' }, options, { baseURL: BASE_URL });
-  options.params = Object.assign({}, options.params, { access_token: accessToken });
+  options.params = Object.assign({}, options.params, { access_token: await accessToken.getAccessToken() });
 
   return options;
 }

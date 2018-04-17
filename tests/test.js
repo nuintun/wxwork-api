@@ -7,7 +7,13 @@
 
 const WXWork = require('../index');
 
-const api = new WXWork('corpId', 'corpSecret');
+// Access token cache
+const ACCESS_TOKEN_CACHE = new Map();
+
+const api = new WXWork('corpId', 'corpSecret', {
+  setAccessToken: (...rest) => ACCESS_TOKEN_CACHE.set(...rest),
+  getAccessToken: (...rest) => ACCESS_TOKEN_CACHE.get(...rest)
+});
 
 async function fetch(params) {
   try {

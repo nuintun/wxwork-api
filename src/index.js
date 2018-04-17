@@ -18,9 +18,10 @@ export default class WXWork {
    * @param {string} corpId
    * @param {string} corpSecret
    */
-  constructor(corpId, corpSecret) {
+  constructor(corpId, corpSecret, options) {
     this.corpId = corpId;
     this.corpSecret = corpSecret;
+    this.accessToken = new AccessToken(corpId, corpSecret, options);
   }
 
   /**
@@ -32,18 +33,19 @@ export default class WXWork {
   async get(url, params = {}, options = {}) {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
+    const accessToken = this.accessToken;
 
     // Set params
     options.params = params;
     // Configure options
-    options = await configure(corpId, corpSecret, options);
+    options = await configure(accessToken, options);
 
     // GET
     const response = await axios.get(url, options);
 
     // Access token is expired
     if (response.data.errcode === 42001) {
-      options.params.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
+      options.params.access_token = await accessToken.refreshAccessToken();
 
       // Refresh
       return await axios.get(url, options);
@@ -62,16 +64,17 @@ export default class WXWork {
   async post(url, data = {}, options = {}) {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
+    const accessToken = this.accessToken;
 
     // Configure options
-    options = await configure(corpId, corpSecret, options);
+    options = await configure(accessToken, options);
 
     // POST
     const response = await axios.post(url, data, options);
 
     // Access token is expired
     if (response.data.errcode === 42001) {
-      options.params.access_token = await AccessToken.refreshAccessToken(corpId, corpSecret);
+      options.params.access_token = await accessToken.refreshAccessToken();
 
       // Refresh
       return await axios.post(url, data, options);
