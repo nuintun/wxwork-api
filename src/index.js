@@ -5,9 +5,9 @@
  * @version 2018/04/16
  */
 
-import axios from 'axios';
-import { configure } from './lib/utils';
+import fetch from './lib/fetch';
 import AccessToken from './lib/access-token';
+import { setAccessToken } from './lib/utils';
 
 /**
  * @class WXWork
@@ -35,20 +35,20 @@ export default class WXWork {
     const corpSecret = this.corpSecret;
     const accessToken = this.accessToken;
 
-    // Set params
-    options.params = params;
     // Configure options
-    options = await configure(accessToken, options);
+    options.method = 'GET';
+    options.params = params;
+    options = await setAccessToken(options, accessToken);
 
     // GET
-    const response = await axios.get(url, options);
+    const response = await fetch(url, options);
 
     // Access token is expired
-    if (response.data.errcode === 42001) {
+    if (response.errcode === 42001) {
       options.params.access_token = await accessToken.refreshAccessToken();
 
       // Refresh
-      return await axios.get(url, options);
+      return await fetch(url, options);
     }
 
     return response;
@@ -67,17 +67,19 @@ export default class WXWork {
     const accessToken = this.accessToken;
 
     // Configure options
-    options = await configure(accessToken, options);
+    options.method = 'POST';
+    options.body = data;
+    options = await setAccessToken(options, accessToken);
 
     // POST
-    const response = await axios.post(url, data, options);
+    const response = await fetch(url, options);
 
     // Access token is expired
-    if (response.data.errcode === 42001) {
+    if (data.errcode === 42001) {
       options.params.access_token = await accessToken.refreshAccessToken();
 
       // Refresh
-      return await axios.post(url, data, options);
+      return await fetch(url, options);
     }
 
     return response;

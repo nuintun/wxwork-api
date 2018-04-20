@@ -5,8 +5,8 @@
  * @version 2018/04/16
  */
 
-import axios from 'axios';
-import { API_ERROR, BASE_URL } from './const';
+import fetch from './fetch';
+import { ACCESS_ERROR } from './constants';
 
 /**
  * @class AccessToken
@@ -51,15 +51,11 @@ export default class AccessToken {
    * @returns {Promise}
    */
   async fetchAccessToken() {
-    const corpId = this.corpId;
-    const corpSecret = this.corpSecret;
+    const corpid = this.corpId;
+    const corpsecret = this.corpSecret;
 
     // GET
-    return await axios.get('gettoken', {
-      baseURL: BASE_URL,
-      responseType: 'json',
-      params: { corpid: corpId, corpsecret: corpSecret }
-    });
+    return await fetch('gettoken', { params: { corpid, corpsecret } });
   }
 
   /**
@@ -89,25 +85,24 @@ export default class AccessToken {
   async refreshAccessToken() {
     // Get access token
     const response = await this.fetchAccessToken();
-    // Get response data
-    const data = response.data;
 
     // Set Cache
-    if (data.errcode === 0) {
-      const token = data.access_token;
-      const expires = Date.now() + data.expires_in * 1000;
+    if (response.errcode === 0) {
+      const token = response.access_token;
+      const expires = Date.now() + response.expires_in * 1000;
       const options = this.options;
 
+      // Call set cache method
       await options.setAccessToken(this.key, Object.freeze({ token, expires }));
 
       return token;
     }
 
     // Get access token error
-    const error = new Error(data.errmsg);
+    const error = new Error(response.errmsg);
 
-    error.name = API_ERROR;
-    error.code = data.errcode;
+    error.name = ACCESS_ERROR;
+    error.code = response.errcode;
 
     throw error;
   }

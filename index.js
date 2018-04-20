@@ -2,24 +2,77 @@
  * @module wxwork-api
  * @author nuintun
  * @license MIT
- * @version 0.0.8
+ * @version 0.1.0
  * @description WXWork API for the node.js.
  * @see https://github.com/nuintun/wxwork-api#readme
  */
 
 'use strict';
 
-const axios = require('axios');
+const url = require('url');
+const fetch = require('node-fetch');
 
 /**
- * @module const
+ * @module constants
  * @author nuintun
  * @license MIT
  * @version 2018/04/16
  */
 
-const API_ERROR = 'WXWorkAPIError';
+const ACCESS_ERROR = 'WXWorkAccessError';
 const BASE_URL = 'https://qyapi.weixin.qq.com/cgi-bin/';
+
+/**
+ * @module url
+ * @author nuintun
+ * @license MIT
+ * @version 2018/04/16
+ */
+
+/**
+ * @function resolveURL
+ * @param {string} relativeURL
+ * @param {string|Object} params
+ */
+function resolveURL(relativeURL, params) {
+  params = new url.URLSearchParams(params);
+
+  if (typeof relativeURL === 'string') {
+    const hasSearchParams = relativeURL.indexOf('?') !== -1;
+
+    relativeURL = `${relativeURL}${hasSearchParams ? '&' : '?'}${params}`;
+
+    return url.resolve(BASE_URL, relativeURL);
+  }
+
+  return `${BASE_URL}?${params}`;
+}
+
+/**
+ * @module fetch
+ * @author nuintun
+ * @license MIT
+ * @version 2018/04/16
+ */
+
+/**
+ * @function fetch
+ * @param {string} url
+ * @param {Object} options
+ * @returns {ReadableStream|Object}
+ */
+const fetch$1 = async (url$$1, options = {}) => {
+  const response = await fetch(resolveURL(url$$1, options.params), options);
+  const contentType = response.headers.get('Content-Type');
+
+  // JSON
+  if (/^application\/json;/i.test(contentType)) {
+    return await response.json();
+  }
+
+  // Readable
+  return response.body;
+};
 
 /**
  * @module access-token
@@ -71,15 +124,11 @@ class AccessToken {
    * @returns {Promise}
    */
   async fetchAccessToken() {
-    const corpId = this.corpId;
-    const corpSecret = this.corpSecret;
+    const corpid = this.corpId;
+    const corpsecret = this.corpSecret;
 
     // GET
-    return await axios.get('gettoken', {
-      baseURL: BASE_URL,
-      responseType: 'json',
-      params: { corpid: corpId, corpsecret: corpSecret }
-    });
+    return await fetch$1('gettoken', { params: { corpid, corpsecret } });
   }
 
   /**
@@ -109,25 +158,24 @@ class AccessToken {
   async refreshAccessToken() {
     // Get access token
     const response = await this.fetchAccessToken();
-    // Get response data
-    const data = response.data;
 
     // Set Cache
-    if (data.errcode === 0) {
-      const token = data.access_token;
-      const expires = Date.now() + data.expires_in * 1000;
+    if (response.errcode === 0) {
+      const token = response.access_token;
+      const expires = Date.now() + response.expires_in * 1000;
       const options = this.options;
 
+      // Call set cache method
       await options.setAccessToken(this.key, Object.freeze({ token, expires }));
 
       return token;
     }
 
     // Get access token error
-    const error = new Error(data.errmsg);
+    const error = new Error(response.errmsg);
 
-    error.name = API_ERROR;
-    error.code = data.errcode;
+    error.name = ACCESS_ERROR;
+    error.code = response.errcode;
 
     throw error;
   }
@@ -141,14 +189,15 @@ class AccessToken {
  */
 
 /**
- * @function configure
- * @param {AccessToken} accessToken
+ * @function setAccessToken
  * @param {any} options
+ * @param {AccessToken} accessToken
  * @returns {Promise}
  */
-async function configure(accessToken, options) {
-  options = Object.assign({ responseType: 'json' }, options, { baseURL: BASE_URL });
-  options.params = Object.assign({}, options.params, { access_token: await accessToken.getAccessToken() });
+async function setAccessToken(options = {}, accessToken) {
+  options.params = Object.assign(options.params || {}, {
+    access_token: await accessToken.getAccessToken()
+  });
 
   return options;
 }
@@ -181,25 +230,25 @@ class WXWork {
    * @param {any} options
    * @returns {Promise}
    */
-  async get(url, params = {}, options = {}) {
+  async get(url$$1, params = {}, options = {}) {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
     const accessToken = this.accessToken;
 
-    // Set params
-    options.params = params;
     // Configure options
-    options = await configure(accessToken, options);
+    options.method = 'GET';
+    options.params = params;
+    options = await setAccessToken(options, accessToken);
 
     // GET
-    const response = await axios.get(url, options);
+    const response = await fetch$1(url$$1, options);
 
     // Access token is expired
-    if (response.data.errcode === 42001) {
+    if (response.errcode === 42001) {
       options.params.access_token = await accessToken.refreshAccessToken();
 
       // Refresh
-      return await axios.get(url, options);
+      return await fetch$1(url$$1, options);
     }
 
     return response;
@@ -212,23 +261,25 @@ class WXWork {
    * @param {any} options
    * @returns {Promise}
    */
-  async post(url, data = {}, options = {}) {
+  async post(url$$1, data = {}, options = {}) {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
     const accessToken = this.accessToken;
 
     // Configure options
-    options = await configure(accessToken, options);
+    options.method = 'POST';
+    options.body = data;
+    options = await setAccessToken(options, accessToken);
 
     // POST
-    const response = await axios.post(url, data, options);
+    const response = await fetch$1(url$$1, options);
 
     // Access token is expired
-    if (response.data.errcode === 42001) {
+    if (data.errcode === 42001) {
       options.params.access_token = await accessToken.refreshAccessToken();
 
       // Refresh
-      return await axios.post(url, data, options);
+      return await fetch$1(url$$1, options);
     }
 
     return response;
