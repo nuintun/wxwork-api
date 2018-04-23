@@ -44,7 +44,7 @@ export default class WXWork {
     const response = await fetch(url, options);
 
     // Access token is expired
-    if (response.errcode === 42001) {
+    if (response.json && response.data.errcode === 42001) {
       options.params.access_token = await accessToken.refreshAccessToken();
 
       // Refresh
@@ -75,7 +75,7 @@ export default class WXWork {
     const response = await fetch(url, options);
 
     // Access token is expired
-    if (data.errcode === 42001) {
+    if (response.json && response.data.errcode === 42001) {
       options.params.access_token = await accessToken.refreshAccessToken();
 
       // Refresh

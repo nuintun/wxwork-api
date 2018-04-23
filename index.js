@@ -2,7 +2,7 @@
  * @module wxwork-api
  * @author nuintun
  * @license MIT
- * @version 0.1.0
+ * @version 0.1.1
  * @description WXWork API for the node.js.
  * @see https://github.com/nuintun/wxwork-api#readme
  */
@@ -95,13 +95,25 @@ const fetch$1 = async (url$$1, options = {}) => {
   // Fetch
   const response = await fetch(resolveURL(url$$1, options.params), options);
 
+  // Headers
+  const headers = Object.create(null);
+
+  // Delete Connection
+  response.headers.delete('Connection');
+  // Delete Content-Length
+  response.headers.delete('Content-Length');
+  // Get headers
+  response.headers.forEach((value, key) => {
+    headers[key.replace(/(^|-)[a-z]/, matched => matched.toUpperCase())] = value;
+  });
+
   // JSON
   if (jsonTyper(response.headers.get('Content-Type'))) {
-    return await response.json();
+    return { headers, data: await response.json(), json: true };
   }
 
   // Readable
-  return response.body;
+  return { headers, data: response.body, json: false };
 };
 
 /**
@@ -158,7 +170,10 @@ class AccessToken {
     const corpsecret = this.corpSecret;
 
     // GET
-    return await fetch$1('gettoken', { params: { corpid, corpsecret } });
+    const response = await fetch$1('gettoken', { params: { corpid, corpsecret } });
+
+    // Get data
+    return response.data;
   }
 
   /**
@@ -274,7 +289,7 @@ class WXWork {
     const response = await fetch$1(url$$1, options);
 
     // Access token is expired
-    if (response.errcode === 42001) {
+    if (response.json && response.data.errcode === 42001) {
       options.params.access_token = await accessToken.refreshAccessToken();
 
       // Refresh
@@ -305,7 +320,7 @@ class WXWork {
     const response = await fetch$1(url$$1, options);
 
     // Access token is expired
-    if (data.errcode === 42001) {
+    if (response.json && response.data.errcode === 42001) {
       options.params.access_token = await accessToken.refreshAccessToken();
 
       // Refresh

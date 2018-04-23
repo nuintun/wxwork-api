@@ -48,11 +48,23 @@ export default async (url, options = {}) => {
   // Fetch
   const response = await fetch(resolveURL(url, options.params), options);
 
+  // Headers
+  const headers = Object.create(null);
+
+  // Delete Connection
+  response.headers.delete('Connection');
+  // Delete Content-Length
+  response.headers.delete('Content-Length');
+  // Get headers
+  response.headers.forEach((value, key) => {
+    headers[key.replace(/(^|-)[a-z]/, matched => matched.toUpperCase())] = value;
+  });
+
   // JSON
   if (jsonTyper(response.headers.get('Content-Type'))) {
-    return await response.json();
+    return { headers, data: await response.json(), json: true };
   }
 
   // Readable
-  return response.body;
+  return { headers, data: response.body, json: false };
 };

@@ -55,7 +55,10 @@ export default class AccessToken {
     const corpsecret = this.corpSecret;
 
     // GET
-    return await fetch('gettoken', { params: { corpid, corpsecret } });
+    const response = await fetch('gettoken', { params: { corpid, corpsecret } });
+
+    // Get data
+    return response.data;
   }
 
   /**
