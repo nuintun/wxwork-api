@@ -57,7 +57,7 @@ export default async (url, options = {}) => {
   response.headers.delete('Content-Length');
   // Get headers
   response.headers.forEach((value, key) => {
-    headers[key.replace(/(^|-)[a-z]/, matched => matched.toUpperCase())] = value;
+    headers[key.replace(/(^|-)[a-z]/g, matched => matched.toUpperCase())] = value;
   });
 
   // JSON
