@@ -7,9 +7,7 @@
     "type": "git",
     "url": "git+https://github.com/nuintun/wxwork-api.git"
   },
-  "keywords": [
-    "WXWork"
-  ],
+  "keywords": ["WXWork"],
   "author": {
     "name": "nuintun",
     "email": "nuintun@qq.com"
