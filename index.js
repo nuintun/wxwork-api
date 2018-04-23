@@ -83,7 +83,7 @@ const fetch$1 = async (url$$1, options = {}) => {
   options.headers = new Headers(options.headers);
 
   // Default send json
-  if (options.headers.has('Content-Type')) {
+  if (!options.headers.has('Content-Type')) {
     options.headers.append('Content-Type', 'application/json');
   }
 
