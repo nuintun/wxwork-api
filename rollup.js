@@ -37,7 +37,7 @@ const banner = `/**
 const inputOptions = {
   input: 'src/index.js',
   preferConst: true,
-  external: ['url', 'node-fetch']
+  external: ['url', 'node-fetch', 'media-typer']
 };
 
 const outputOptions = {

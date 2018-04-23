@@ -10,6 +10,7 @@
 'use strict';
 
 const url = require('url');
+const typer = require('media-typer');
 const fetch = require('node-fetch');
 
 /**
@@ -55,6 +56,23 @@ function resolveURL(relativeURL, params) {
  * @version 2018/04/16
  */
 
+const { Headers } = fetch;
+
+/**
+ * @function jsonTyper
+ * @param {string} media
+ * @returns {boolean}
+ */
+function jsonTyper(media) {
+  if (media) {
+    const { subtype } = typer.parse(media);
+
+    return subtype === 'json';
+  }
+
+  return false;
+}
+
 /**
  * @function fetch
  * @param {string} url
@@ -62,11 +80,23 @@ function resolveURL(relativeURL, params) {
  * @returns {ReadableStream|Object}
  */
 const fetch$1 = async (url$$1, options = {}) => {
+  options.headers = new Headers(options.headers);
+
+  // Default send json
+  if (options.headers.has('Content-Type')) {
+    options.headers.append('Content-Type', 'application/json');
+  }
+
+  // Serialize body
+  if (options.hasOwnProperty('body') && jsonTyper(options.headers.get('Content-Type'))) {
+    options.body = JSON.stringify(options.body);
+  }
+
+  // Fetch
   const response = await fetch(resolveURL(url$$1, options.params), options);
-  const contentType = response.headers.get('Content-Type');
 
   // JSON
-  if (/^application\/json;/i.test(contentType)) {
+  if (jsonTyper(response.headers.get('Content-Type'))) {
     return await response.json();
   }
 
