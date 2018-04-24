@@ -35,7 +35,7 @@ export default async function request(url, options, accessToken) {
       options.params.access_token = await accessToken.refreshAccessToken();
 
       // Refetch
-      return fetch(url, options);
+      return await fetch(url, options);
     }
 
     // Response

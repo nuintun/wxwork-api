@@ -2,7 +2,7 @@
  * @module wxwork-api
  * @author nuintun
  * @license MIT
- * @version 0.1.2
+ * @version 0.1.3
  * @description WXWork API for the node.js.
  * @see https://github.com/nuintun/wxwork-api#readme
  */
@@ -87,7 +87,7 @@ const { Headers } = fetch;
  * @param {Object} options
  * @returns {ReadableStream|Object}
  */
-const fetch$1 = async (url$$1, options = {}) => {
+const fetch$1 = (url$$1, options = {}) => {
   options.headers = new Headers(options.headers);
 
   // Default send json
@@ -138,7 +138,7 @@ async function request(url$$1, options, accessToken) {
       options.params.access_token = await accessToken.refreshAccessToken();
 
       // Refetch
-      return fetch$1(url$$1, options);
+      return await fetch$1(url$$1, options);
     }
 
     // Response
@@ -286,7 +286,7 @@ class WXWork {
    * @param {any} options
    * @returns {Promise}
    */
-  async get(url$$1, params = {}, options = {}) {
+  get(url$$1, params = {}, options = {}) {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
     const accessToken = this.accessToken;
@@ -309,7 +309,7 @@ class WXWork {
    * @param {any} options
    * @returns {Promise}
    */
-  async post(url$$1, data = {}, options = {}) {
+  post(url$$1, data = {}, options = {}) {
     const corpId = this.corpId;
     const corpSecret = this.corpSecret;
     const accessToken = this.accessToken;

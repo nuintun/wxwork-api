@@ -17,7 +17,7 @@ const { Headers } = fetch;
  * @param {Object} options
  * @returns {ReadableStream|Object}
  */
-export default async (url, options = {}) => {
+export default (url, options = {}) => {
   options.headers = new Headers(options.headers);
 
   // Default send json
