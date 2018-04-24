@@ -2,7 +2,7 @@
  * @module wxwork-api
  * @author nuintun
  * @license MIT
- * @version 0.1.1
+ * @version 0.1.2
  * @description WXWork API for the node.js.
  * @see https://github.com/nuintun/wxwork-api#readme
  */
@@ -50,21 +50,20 @@ function resolveURL(relativeURL, params) {
 }
 
 /**
- * @module fetch
+ * @module utils
  * @author nuintun
  * @license MIT
  * @version 2018/04/16
  */
 
-const { Headers } = fetch;
-
 /**
  * @function jsonTyper
- * @param {string} media
+ * @param {Headers} headers
  * @returns {boolean}
  */
-function jsonTyper(media) {
-  if (media) {
+function jsonTyper(headers) {
+  if (headers.has('Content-Type')) {
+    const media = headers.get('Content-Type');
     const { subtype } = typer.parse(media);
 
     return subtype === 'json';
@@ -72,6 +71,15 @@ function jsonTyper(media) {
 
   return false;
 }
+
+/**
+ * @module fetch
+ * @author nuintun
+ * @license MIT
+ * @version 2018/04/16
+ */
+
+const { Headers } = fetch;
 
 /**
  * @function fetch
@@ -88,33 +96,58 @@ const fetch$1 = async (url$$1, options = {}) => {
   }
 
   // Serialize body
-  if (options.hasOwnProperty('body') && jsonTyper(options.headers.get('Content-Type'))) {
+  if (options.hasOwnProperty('body') && jsonTyper(options.headers)) {
     options.body = JSON.stringify(options.body);
   }
 
   // Fetch
-  const response = await fetch(resolveURL(url$$1, options.params), options);
+  return fetch(resolveURL(url$$1, options.params), options);
+};
 
-  // Headers
-  const headers = Object.create(null);
+/**
+ * @module request
+ * @author nuintun
+ * @license MIT
+ * @version 2018/04/24
+ */
 
-  // Delete Connection
-  response.headers.delete('Connection');
-  // Delete Content-Length
-  response.headers.delete('Content-Length');
-  // Get headers
-  response.headers.forEach((value, key) => {
-    headers[key.replace(/(^|-)[a-z]/g, matched => matched.toUpperCase())] = value;
+/**
+ * @function request
+ * @param {string} url
+ * @param {Object} options
+ * @param {AccessToken} accessToken
+ * @returns {Response}
+ */
+async function request(url$$1, options, accessToken) {
+  // Set access token
+  options.params = Object.assign(options.params || {}, {
+    access_token: await accessToken.getAccessToken()
   });
 
-  // JSON
-  if (jsonTyper(response.headers.get('Content-Type'))) {
-    return { headers, data: await response.json(), json: true };
+  // Fetch
+  const response = await fetch$1(url$$1, options);
+
+  // JSON response
+  if (jsonTyper(response.headers)) {
+    const clone = response.clone();
+    const data = await response.json();
+
+    // Access token is expired
+    if (data.errcode === 42001) {
+      // Refresh access token
+      options.params.access_token = await accessToken.refreshAccessToken();
+
+      // Refetch
+      return fetch$1(url$$1, options);
+    }
+
+    // Response
+    return clone;
   }
 
-  // Readable
-  return { headers, data: response.body, json: false };
-};
+  // Response
+  return response;
+}
 
 /**
  * @module access-token
@@ -173,7 +206,7 @@ class AccessToken {
     const response = await fetch$1('gettoken', { params: { corpid, corpsecret } });
 
     // Get data
-    return response.data;
+    return response.json();
   }
 
   /**
@@ -193,7 +226,7 @@ class AccessToken {
     }
 
     // Refresh access token
-    return await this.refreshAccessToken();
+    return this.refreshAccessToken();
   }
 
   /**
@@ -208,10 +241,9 @@ class AccessToken {
     if (response.errcode === 0) {
       const token = response.access_token;
       const expires = Date.now() + response.expires_in * 1000;
-      const options = this.options;
 
       // Call set cache method
-      await options.setAccessToken(this.key, Object.freeze({ token, expires }));
+      await this.options.setAccessToken(this.key, Object.freeze({ token, expires }));
 
       return token;
     }
@@ -224,27 +256,6 @@ class AccessToken {
 
     throw error;
   }
-}
-
-/**
- * @module utils
- * @author nuintun
- * @license MIT
- * @version 2018/04/16
- */
-
-/**
- * @function setAccessToken
- * @param {any} options
- * @param {AccessToken} accessToken
- * @returns {Promise}
- */
-async function setAccessToken(options = {}, accessToken) {
-  options.params = Object.assign(options.params || {}, {
-    access_token: await accessToken.getAccessToken()
-  });
-
-  return options;
 }
 
 /**
@@ -283,20 +294,12 @@ class WXWork {
     // Configure options
     options.method = 'GET';
     options.params = params;
-    options = await setAccessToken(options, accessToken);
+
+    // Remove body
+    delete options.body;
 
     // GET
-    const response = await fetch$1(url$$1, options);
-
-    // Access token is expired
-    if (response.json && response.data.errcode === 42001) {
-      options.params.access_token = await accessToken.refreshAccessToken();
-
-      // Refresh
-      return await fetch$1(url$$1, options);
-    }
-
-    return response;
+    return request(url$$1, options, accessToken);
   }
 
   /**
@@ -314,20 +317,9 @@ class WXWork {
     // Configure options
     options.method = 'POST';
     options.body = data;
-    options = await setAccessToken(options, accessToken);
 
     // POST
-    const response = await fetch$1(url$$1, options);
-
-    // Access token is expired
-    if (response.json && response.data.errcode === 42001) {
-      options.params.access_token = await accessToken.refreshAccessToken();
-
-      // Refresh
-      return await fetch$1(url$$1, options);
-    }
-
-    return response;
+    return request(url$$1, options, accessToken);
   }
 }
 

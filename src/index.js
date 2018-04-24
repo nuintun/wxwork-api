@@ -5,9 +5,8 @@
  * @version 2018/04/16
  */
 
-import fetch from './lib/fetch';
+import request from './lib/request';
 import AccessToken from './lib/access-token';
-import { setAccessToken } from './lib/utils';
 
 /**
  * @class WXWork
@@ -38,20 +37,12 @@ export default class WXWork {
     // Configure options
     options.method = 'GET';
     options.params = params;
-    options = await setAccessToken(options, accessToken);
+
+    // Remove body
+    delete options.body;
 
     // GET
-    const response = await fetch(url, options);
-
-    // Access token is expired
-    if (response.json && response.data.errcode === 42001) {
-      options.params.access_token = await accessToken.refreshAccessToken();
-
-      // Refresh
-      return await fetch(url, options);
-    }
-
-    return response;
+    return request(url, options, accessToken);
   }
 
   /**
@@ -69,19 +60,8 @@ export default class WXWork {
     // Configure options
     options.method = 'POST';
     options.body = data;
-    options = await setAccessToken(options, accessToken);
 
     // POST
-    const response = await fetch(url, options);
-
-    // Access token is expired
-    if (response.json && response.data.errcode === 42001) {
-      options.params.access_token = await accessToken.refreshAccessToken();
-
-      // Refresh
-      return await fetch(url, options);
-    }
-
-    return response;
+    return request(url, options, accessToken);
   }
 }

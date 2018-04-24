@@ -58,7 +58,7 @@ export default class AccessToken {
     const response = await fetch('gettoken', { params: { corpid, corpsecret } });
 
     // Get data
-    return response.data;
+    return response.json();
   }
 
   /**
@@ -78,7 +78,7 @@ export default class AccessToken {
     }
 
     // Refresh access token
-    return await this.refreshAccessToken();
+    return this.refreshAccessToken();
   }
 
   /**
@@ -93,10 +93,9 @@ export default class AccessToken {
     if (response.errcode === 0) {
       const token = response.access_token;
       const expires = Date.now() + response.expires_in * 1000;
-      const options = this.options;
 
       // Call set cache method
-      await options.setAccessToken(this.key, Object.freeze({ token, expires }));
+      await this.options.setAccessToken(this.key, Object.freeze({ token, expires }));
 
       return token;
     }
