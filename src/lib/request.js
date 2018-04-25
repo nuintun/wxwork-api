@@ -2,44 +2,36 @@
  * @module request
  * @author nuintun
  * @license MIT
- * @version 2018/04/24
+ * @version 2018/04/25
  */
 
-import fetch from './fetch';
-import { jsonTyper } from './utils';
+import agent from './agent';
 
 /**
  * @function request
  * @param {string} url
- * @param {Object} options
  * @param {AccessToken} accessToken
- * @returns {Response}
+ * @param {Object} options
+ * @returns {Promise}
  */
-export default async function request(url, options, accessToken) {
-  // Set access token
+export default async function request(url, accessToken, options = {}) {
+  options.url = url;
   options.params = Object.assign(options.params || {}, {
     access_token: await accessToken.getAccessToken()
   });
 
   // Fetch
-  const response = await fetch(url, options);
+  const response = await agent.request(options);
+  // Get data
+  const data = response.data;
 
-  // JSON response
-  if (jsonTyper(response.headers)) {
-    const clone = response.clone();
-    const data = await response.json();
+  // Access token is expired
+  if (data && data.errcode === 42001) {
+    // Refresh access token
+    options.params.access_token = await accessToken.refreshAccessToken();
 
-    // Access token is expired
-    if (data.errcode === 42001) {
-      // Refresh access token
-      options.params.access_token = await accessToken.refreshAccessToken();
-
-      // Refetch
-      return await fetch(url, options);
-    }
-
-    // Response
-    return clone;
+    // Refetch
+    return await agent.request(options);
   }
 
   // Response

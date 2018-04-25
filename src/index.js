@@ -2,11 +2,14 @@
  * @module index
  * @author nuintun
  * @license MIT
- * @version 2018/04/16
+ * @version 2018/04/25
  */
 
 import request from './lib/request';
 import AccessToken from './lib/access-token';
+
+// Access token symbol
+const ACCESS_TOKEN = Symbol('AccessToken');
 
 /**
  * @class WXWork
@@ -18,9 +21,15 @@ export default class WXWork {
    * @param {string} corpSecret
    */
   constructor(corpId, corpSecret, options) {
-    this.corpId = corpId;
-    this.corpSecret = corpSecret;
-    this.accessToken = new AccessToken(corpId, corpSecret, options);
+    this[ACCESS_TOKEN] = new AccessToken(corpId, corpSecret, options);
+  }
+
+  /**
+   * @method getAccessToken
+   * @returns {Promise}
+   */
+  getAccessToken() {
+    return this[ACCESS_TOKEN].getAccessToken();
   }
 
   /**
@@ -30,19 +39,11 @@ export default class WXWork {
    * @returns {Promise}
    */
   get(url, params = {}, options = {}) {
-    const corpId = this.corpId;
-    const corpSecret = this.corpSecret;
-    const accessToken = this.accessToken;
-
     // Configure options
-    options.method = 'GET';
-    options.params = params;
-
-    // Remove body
-    delete options.body;
+    options = Object.assign(options, { method: 'GET', params });
 
     // GET
-    return request(url, options, accessToken);
+    return request(url, this[ACCESS_TOKEN], options);
   }
 
   /**
@@ -52,16 +53,11 @@ export default class WXWork {
    * @param {any} options
    * @returns {Promise}
    */
-  post(url, data = {}, options = {}) {
-    const corpId = this.corpId;
-    const corpSecret = this.corpSecret;
-    const accessToken = this.accessToken;
-
+  async post(url, data = {}, options = {}) {
     // Configure options
-    options.method = 'POST';
-    options.body = data;
+    options = Object.assign(options, { method: 'POST', data });
 
     // POST
-    return request(url, options, accessToken);
+    return request(url, this[ACCESS_TOKEN], options);
   }
 }

@@ -2,11 +2,10 @@
  * @module access-token
  * @author nuintun
  * @license MIT
- * @version 2018/04/16
+ * @version 2018/04/25
  */
 
-import fetch from './fetch';
-import { ACCESS_ERROR } from './constants';
+import agent from './agent';
 
 /**
  * @class AccessToken
@@ -55,10 +54,10 @@ export default class AccessToken {
     const corpsecret = this.corpSecret;
 
     // GET
-    const response = await fetch('gettoken', { params: { corpid, corpsecret } });
+    const response = await agent.get('gettoken', { params: { corpid, corpsecret } });
 
     // Get data
-    return response.json();
+    return response.data;
   }
 
   /**
@@ -103,7 +102,7 @@ export default class AccessToken {
     // Get access token error
     const error = new Error(response.errmsg);
 
-    error.name = ACCESS_ERROR;
+    error.name = 'WXWorkAccessError';
     error.code = response.errcode;
 
     throw error;

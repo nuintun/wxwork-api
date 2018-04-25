@@ -19,7 +19,7 @@ async function fetch(params) {
   try {
     const response = await api.get('user/get', { userid: 'nuintun' });
 
-    console.log(await response.json());
+    console.log(response.data);
   } catch (error) {
     return console.error(error);
   }
