@@ -2,7 +2,7 @@
  * @module wxwork-api
  * @author nuintun
  * @license MIT
- * @version 0.2.0
+ * @version 0.2.1
  * @description WXWork API for the node.js.
  * @see https://github.com/nuintun/wxwork-api#readme
  */
@@ -31,34 +31,54 @@ const agent = axios.create({ baseURL: 'https://qyapi.weixin.qq.com/cgi-bin', max
  */
 
 /**
- * @function request
- * @param {string} url
- * @param {AccessToken} accessToken
- * @param {Object} options
- * @returns {Promise}
+ * @class Request
  */
-async function request(url, accessToken, options = {}) {
-  options.url = url;
-  options.params = Object.assign(options.params || {}, {
-    access_token: await accessToken.getAccessToken()
-  });
-
-  // Fetch
-  const response = await agent.request(options);
-  // Get data
-  const data = response.data;
-
-  // Access token is expired
-  if (data && data.errcode === 42001) {
-    // Refresh access token
-    options.params.access_token = await accessToken.refreshAccessToken();
-
-    // Refetch
-    return await agent.request(options);
+class Request {
+  /**
+   * @method getAccessToken
+   * @returns {Promise}
+   */
+  async getAccessToken() {
+    throw new Error('Method getAccessToken not implemented');
   }
 
-  // Response
-  return response;
+  /**
+   * @method refreshAccessToken
+   * @returns {Promise}
+   */
+  async refreshAccessToken() {
+    throw new Error('Method refreshAccessToken not implemented');
+  }
+
+  /**
+   * @function request
+   * @param {string} url
+   * @param {Object} options
+   * @returns {Promise}
+   */
+  async request(url, options = {}) {
+    options.url = url;
+    options.params = Object.assign(options.params || {}, {
+      access_token: await this.getAccessToken()
+    });
+
+    // Fetch
+    const response = await agent.request(options);
+    // Get data
+    const data = response.data;
+
+    // Access token is expired
+    if (data && data.errcode === 42001) {
+      // Refresh access token
+      options.params.access_token = await this.refreshAccessToken();
+
+      // Refetch
+      return await agent.request(options);
+    }
+
+    // Response
+    return response;
+  }
 }
 
 /**
@@ -183,13 +203,16 @@ const ACCESS_TOKEN = Symbol('AccessToken');
 /**
  * @class WXWork
  */
-class WXWork {
+class WXWork extends Request {
   /**
    * @constructor
    * @param {string} corpId
    * @param {string} corpSecret
    */
   constructor(corpId, corpSecret, options) {
+    super();
+
+    // Access token
     this[ACCESS_TOKEN] = new AccessToken(corpId, corpSecret, options);
   }
 
@@ -199,6 +222,14 @@ class WXWork {
    */
   getAccessToken() {
     return this[ACCESS_TOKEN].getAccessToken();
+  }
+
+  /**
+   * @method refreshAccessToken
+   * @returns {Promise}
+   */
+  refreshAccessToken() {
+    return this[ACCESS_TOKEN].refreshAccessToken();
   }
 
   /**
@@ -212,7 +243,7 @@ class WXWork {
     options = Object.assign(options, { method: 'GET', params });
 
     // GET
-    return request(url, this[ACCESS_TOKEN], options);
+    return this.request(url, options);
   }
 
   /**
@@ -227,7 +258,7 @@ class WXWork {
     options = Object.assign(options, { method: 'POST', data });
 
     // POST
-    return request(url, this[ACCESS_TOKEN], options);
+    return this.request(url, options);
   }
 }
 
