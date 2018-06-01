@@ -23,8 +23,8 @@
     "axios": "^0.18.0"
   },
   "devDependencies": {
-    "rollup": "^0.58.2",
-    "fs-extra": "^6.0.0"
+    "rollup": "^0.59.4",
+    "fs-extra": "^6.0.1"
   },
   "scripts": {
     "prepublishOnly": "node rollup.js"
