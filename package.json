@@ -1,13 +1,15 @@
 {
   "name": "wxwork-api",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "WXWork API for the node.js.",
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nuintun/wxwork-api.git"
   },
-  "keywords": ["WXWork"],
+  "keywords": [
+    "WXWork"
+  ],
   "author": {
     "name": "nuintun",
     "email": "nuintun@qq.com"
@@ -23,8 +25,8 @@
     "axios": "^0.18.0"
   },
   "devDependencies": {
-    "rollup": "^0.59.4",
-    "fs-extra": "^6.0.1"
+    "rollup": "^0.63.2",
+    "fs-extra": "^7.0.0"
   },
   "scripts": {
     "prepublishOnly": "node rollup.js"
