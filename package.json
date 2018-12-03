@@ -1,6 +1,6 @@
 {
   "name": "wxwork-api",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "WXWork API for the node.js.",
   "main": "index.js",
   "repository": {
@@ -25,8 +25,8 @@
     "axios": "^0.18.0"
   },
   "devDependencies": {
-    "rollup": "^0.66.6",
-    "fs-extra": "^7.0.0"
+    "rollup": "^0.67.4",
+    "fs-extra": "^7.0.1"
   },
   "scripts": {
     "prepublishOnly": "node rollup.js"

@@ -15,7 +15,7 @@ const api = new WXWork('corpId', 'corpSecret', {
   getAccessToken: (...rest) => ACCESS_TOKEN_CACHE.get(...rest)
 });
 
-async function fetch(params) {
+async function fetch() {
   try {
     const response = await api.get('user/get', { userid: 'nuintun' });
 
