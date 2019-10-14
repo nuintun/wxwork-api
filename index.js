@@ -2,7 +2,7 @@
  * @module wxwork-api
  * @author nuintun
  * @license MIT
- * @version 0.3.1
+ * @version 0.3.2
  * @description WXWork API for the node.js.
  * @see https://github.com/nuintun/wxwork-api#readme
  */

@@ -36,7 +36,6 @@ const banner = `/**
 
 const inputOptions = {
   input: 'src/index.js',
-  preferConst: true,
   external: ['url', 'axios']
 };
 
@@ -47,7 +46,8 @@ const outputOptions = {
   indent: true,
   legacy: true,
   interop: false,
-  file: 'index.js'
+  file: 'index.js',
+  preferConst: true
 };
 
 build(inputOptions, outputOptions);
