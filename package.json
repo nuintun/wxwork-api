@@ -1,6 +1,6 @@
 {
   "name": "wxwork-api",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "WXWork API for the node.js.",
   "main": "index.js",
   "repository": {
@@ -22,10 +22,10 @@
     "node": ">=7.6.0"
   },
   "dependencies": {
-    "axios": "^0.19.2"
+    "axios": "^0.21.1"
   },
   "devDependencies": {
-    "rollup": "^2.26.4"
+    "rollup": "^2.40.0"
   },
   "scripts": {
     "prepublishOnly": "npm run build",
