@@ -64,7 +64,7 @@ export default class WXWork extends Request {
    * @param {any} options
    * @returns {Promise}
    */
-  async post(url, data = {}, options = {}) {
+  post(url, data = {}, options = {}) {
     // Configure options
     options = Object.assign(options, { method: 'POST', data });
 
